@@ -27,3 +27,34 @@ describe("GET /api/movies/:id", () => {
     expect(response.status).toEqual(404);
   });
 });
+
+describe("POST /api/movies", () => {
+  it("should return created movie", async () => {
+   const newMovie = {
+      title: "Star Wars",
+      director: "George Lucas",
+      year: "1977",
+      color: true,
+      duration: 120,
+    };
+
+    const response = await request(app).post("/api/movies").send(newMovie)
+    const getResponse = await request(app).get(
+      `/api/movies/${response.body.id}`
+    );
+
+    expect(getResponse.headers["content-type"]).toMatch(/json/);
+    expect(response.status).toEqual(201)
+    expect(response.body).toHaveProperty("id");
+    expect(typeof response.body.id).toBe("number");
+  });
+  it("should return an error", async () => {
+    const movieWithMissingProps = { title: "Harry Potter" };
+
+    const response = await request(app)
+      .post("/api/movies")
+      .send(movieWithMissingProps);
+
+    expect(response.status).toEqual(500);
+  });
+});
