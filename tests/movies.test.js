@@ -30,7 +30,7 @@ describe("GET /api/movies/:id", () => {
 
 describe("POST /api/movies", () => {
   it("should return created movie", async () => {
-   const newMovie = {
+    const newMovie = {
       title: "Star Wars",
       director: "George Lucas",
       year: "1977",
@@ -38,23 +38,44 @@ describe("POST /api/movies", () => {
       duration: 120,
     };
 
-    const response = await request(app).post("/api/movies").send(newMovie)
+    const response = await request(app).post("/api/movies").send(newMovie);
+
+    expect(response.headers["content-type"]).toMatch(/json/);
+    expect(response.status).toEqual(201);
+    expect(response.body).toHaveProperty("id");
+    expect(typeof response.body.id).toBe("number");
+
     const getResponse = await request(app).get(
       `/api/movies/${response.body.id}`
     );
 
     expect(getResponse.headers["content-type"]).toMatch(/json/);
-    expect(response.status).toEqual(201)
-    expect(response.body).toHaveProperty("id");
-    expect(typeof response.body.id).toBe("number");
-  });
-  it("should return an error", async () => {
-    const movieWithMissingProps = { title: "Harry Potter" };
+    expect(getResponse.status).toEqual(200);
 
-    const response = await request(app)
-      .post("/api/movies")
-      .send(movieWithMissingProps);
+    expect(getResponse.body).toHaveProperty("id");
 
-    expect(response.status).toEqual(500);
+    expect(getResponse.body).toHaveProperty("title");
+    expect(getResponse.body.title).toStrictEqual(newMovie.title);
+
+    expect(getResponse.body).toHaveProperty("director");
+    expect(getResponse.body.director).toStrictEqual(newMovie.director);
+   
+    expect(getResponse.body).toHaveProperty("year");
+    expect(getResponse.body.year).toStrictEqual(newMovie.year);
+    
+    expect(getResponse.body).toHaveProperty("color");
+   
+
+    expect(getResponse.body).toHaveProperty("duration");
+    
   });
+    it("should return an error", async () => {
+      const movieWithMissingProps = { title: "Harry Potter" };
+
+      const response = await request(app)
+        .post("/api/movies")
+        .send(movieWithMissingProps);
+
+      expect(response.status).toEqual(500);
+    });
 });
