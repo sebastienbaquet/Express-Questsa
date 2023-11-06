@@ -28,16 +28,33 @@ const movies = [
 ];
 
 const getMovies = (req, res) => {
-  database
-    .query("select * from movies")
-    .then(([movies]) => {
-      res.json(movies);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
+let sql = "select * from movies";
+const sqlValues = [];
+
+if (req.query.color != null) {
+  sql += " where color = ?";
+  sqlValues.push(req.query.color);
+
+  if (req.query.max_duration != null) {
+    sql += " and duration <= ?";
+    sqlValues.push(req.query.max_duration);
+  }
+} else if (req.query.max_duration != null) {
+  sql += " where duration <= ?";
+  sqlValues.push(req.query.max_duration);
+}
+
+database
+  .query(sql, sqlValues)
+  .then(([movies]) => {
+    res.json(movies);
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(500).send("Error retrieving data from the database");
+  });
 };
+
 const getMovieById = (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -57,16 +74,32 @@ const getMovieById = (req, res) => {
 };
 
 const getUsers = (req, res) => {
+  let sql = "select * from users";
+  const sqlValues = [];
+  
+  if (req.query.language != null) {
+    sql += " where language = ?";
+    sqlValues.push(req.query.language);
+  
+    if (req.query.city != null) {
+      sql += " and city = ?";
+      sqlValues.push(req.query.city);
+    }
+  } else if (req.query.city != null) {
+    sql += " where city = ?";
+    sqlValues.push(req.query.city);
+  }
+  
   database
-    .query("select * from users")
+    .query(sql, sqlValues)
     .then(([users]) => {
-      res.status(200).json(users);
+      res.json(users);
     })
     .catch((err) => {
       console.error(err);
-      res.sendStatus(500);
+      res.status(500).send("Error retrieving data from the database");
     });
-};
+  };
 
 const getUsersById = (req, res) => {
   const id = parseInt(req.params.id);
