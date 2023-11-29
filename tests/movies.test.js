@@ -1,5 +1,5 @@
 const request = require("supertest");
-const database = require('../database');
+const database = require("../database");
 const app = require("../src/app");
 
 describe("GET /api/movies", () => {
@@ -59,25 +59,23 @@ describe("POST /api/movies", () => {
 
     expect(getResponse.body).toHaveProperty("director");
     expect(getResponse.body.director).toStrictEqual(newMovie.director);
-   
+
     expect(getResponse.body).toHaveProperty("year");
     expect(getResponse.body.year).toStrictEqual(newMovie.year);
-    
+
     expect(getResponse.body).toHaveProperty("color");
-   
 
     expect(getResponse.body).toHaveProperty("duration");
-    
   });
-    it("should return an error", async () => {
-      const movieWithMissingProps = { title: "Harry Potter" };
+  it("should return an error", async () => {
+    const movieWithMissingProps = { title: "Harry Potter" };
 
-      const response = await request(app)
-        .post("/api/movies")
-        .send(movieWithMissingProps);
+    const response = await request(app)
+      .post("/api/movies")
+      .send(movieWithMissingProps);
 
-      expect(response.status).toEqual(500);
-    });
+    expect(response.status).toEqual(422);
+  });
 });
 
 describe("PUT /api/movies/:id", () => {
@@ -91,7 +89,13 @@ describe("PUT /api/movies/:id", () => {
     };
     const [result] = await database.query(
       "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
-      [newMovie.title, newMovie.director, newMovie.year, newMovie.color, newMovie.duration]
+      [
+        newMovie.title,
+        newMovie.director,
+        newMovie.year,
+        newMovie.color,
+        newMovie.duration,
+      ]
     );
 
     const id = result.insertId;
@@ -110,7 +114,10 @@ describe("PUT /api/movies/:id", () => {
 
     expect(response.status).toEqual(204);
 
-    const [resulta] = await database.query("SELECT * FROM movies WHERE id=?", id);
+    const [resulta] = await database.query(
+      "SELECT * FROM movies WHERE id=?",
+      id
+    );
 
     const [movieInDatabase] = resulta;
 
@@ -132,28 +139,27 @@ describe("PUT /api/movies/:id", () => {
     expect(movieInDatabase.duration).toStrictEqual(updatedMovie.duration);
   });
 
-    it("should return an error", async () => {
-      const movieWithMissingProps = { title: "Harry Potter" };
-  
-      const response = await request(app)
-        .put(`/api/movies/1`)
-        .send(movieWithMissingProps);
-  
-      expect(response.status).toEqual(500);
-    });
+  it("should return an error", async () => {
+    const movieWithMissingProps = { title: "Harry Potter" };
 
-      it("should return no movie", async () => {
-        const newMovie = {
-          title: "Avatar",
-          director: "James Cameron",
-          year: "2009",
-          color: true,
-          duration: 162,
-        };
-    
-        const response = await request(app).put("/api/movies/0").send(newMovie);
-    
-        expect(response.status).toEqual(404);
+    const response = await request(app)
+      .put(`/api/movies/1`)
+      .send(movieWithMissingProps);
 
+    expect(response.status).toEqual(422);
+  });
+
+  it("should return no movie", async () => {
+    const newMovie = {
+      title: "Avatar",
+      director: "James Cameron",
+      year: "2009",
+      color: true,
+      duration: 162,
+    };
+
+    const response = await request(app).put("/api/movies/0").send(newMovie);
+
+    expect(response.status).toEqual(404);
   });
 });
